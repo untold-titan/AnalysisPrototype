@@ -18,7 +18,7 @@
 
 @code {
     string name = "", description = "", selectedCategory = "0", defaultCategory = "";
- 
+
     float cost = 0;
     public Equipment equipment;
 
@@ -28,7 +28,7 @@
     protected override async Task OnInitializedAsync()
     {
         using var db = new DataContext();
-        defaultCategory = db.Categories.AsNoTracking().FirstOrDefault().Id.ToString();
+        defaultCategory = db.Categories.AsNoTracking().FirstOrDefault().Id.ToString() ?? "";
     }
 
     private async Task SaveAsync()

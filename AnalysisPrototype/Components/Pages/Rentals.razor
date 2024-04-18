@@ -42,7 +42,7 @@
     public void DeleteRental(int id)
     {
         using var db = new DataContext();
-        db.Rentals.Remove(db.Rentals.First(p => p.Id == id));
+        db.Rentals.Remove(new Rental(){Id = id });
         db.SaveChanges();
         StateHasChanged();
     }
