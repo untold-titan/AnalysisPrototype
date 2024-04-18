@@ -1,0 +1,13 @@
+﻿@using AnalysisPrototype.DataManagers;
+@page "/"
+<div>
+
+    <h1>Home</h1>
+    <p>Welcome to the Rental Manager 9000! Here you can see some statistics about the system</p>
+
+    <p>Saved Customers: @db.Customers.Count()</p>
+</div>
+
+@code {
+    DataContext db = new DataContext();
+}

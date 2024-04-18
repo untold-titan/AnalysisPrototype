@@ -1,0 +1,69 @@
+@using AnalysisPrototype.DataManagers;
+@using AnalysisPrototype.Data;
+@using Microsoft.EntityFrameworkCore;
+@using Microsoft.FluentUI.AspNetCore.Components;
+@using AnalysisPrototype.Components.Dialogs;
+@inject IDialogService DialogService;
+@page "/customers"
+
+
+<h1>Customers</h1>
+<FluentButton OnClick="@OpenCreationDialog" IconStart="@(new Icons.Regular.Size20.Add())">Add</FluentButton>
+<table>
+    <tr>
+        <th>First Name</th>
+        <th>Last Name</th>
+        <th>Phone</th>
+        <th>Email</th>
+    </tr>
+    @using (var db = new DataContext())
+    {
+        @foreach (var customer in db.Customers.AsNoTracking().ToList())
+        {
+            <tr>
+                <td>@customer.FirstName</td>
+                <td>@customer.LastName</td>
+                <td>@customer.Phone</td>
+                <td>@customer.Email</td>
+                <td><FluentButton OnClick="@(() => DeleteCustomer(customer.Id))">Delete</FluentButton></td>
+            </tr>
+        }
+    }
+</table>
+
+@code {
+    private bool _trapFocus = true;
+    private bool _modal = true;
+
+    public void DeleteCustomer(int id)
+    {
+        using var db = new DataContext();
+        db.Customers.Remove(new Customer() { Id = id });
+        db.SaveChanges();
+        StateHasChanged();
+    }
+
+    public async void OpenCreationDialog()
+    {
+        using var db = new DataContext();
+        DialogParameters parameters = new()
+            {
+                Title = $"New Customer",
+                Width = "500px",
+                TrapFocus = _trapFocus,
+                Modal = _modal,
+                PreventScroll = true
+            };
+
+        IDialogReference dialog = await DialogService.ShowDialogAsync<CustomerCreateDialog>(parameters);
+        DialogResult? result = await dialog.Result;
+        Customer createdCustomer = (Customer)result.Data;
+        if (createdCustomer == null)
+        {
+            return;
+        }
+        db.Customers.Add(createdCustomer);
+        await db.SaveChangesAsync();
+        StateHasChanged();
+    }
+}

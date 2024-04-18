@@ -1,0 +1,128 @@
+@using AnalysisPrototype.DataManagers;
+@using AnalysisPrototype.Data;
+@using Microsoft.EntityFrameworkCore;
+@using Microsoft.FluentUI.AspNetCore.Components;
+@using AnalysisPrototype.Components.Dialogs;
+@inject IDialogService DialogService;
+@page "/equipment"
+
+
+<h1>Equipment</h1>
+<FluentTabs @bind-ActiveTabId="@activeTab">
+    <FluentTab Label="Equipment" Id="tab-1">
+        <FluentButton OnClick="@OpenEquipmentCreationDialog" IconStart="@(new Icons.Regular.Size20.Add())">Add</FluentButton>
+        <table>
+            <tr>
+                <th>Name</th>
+                <th>Category</th>
+                <th>Description</th>
+                <th>Cost</th>
+            </tr>
+            @using (var db = new DataContext())
+            {
+
+                @foreach (var equipment in db.Equipment.AsNoTracking().Include(p => p.Category).ToList())
+                {
+                    <tr>
+                        <td>@equipment.Name</td>
+                        <td>@equipment.Category.Name</td>
+                        <td>@equipment.Description</td>
+                        <td>@equipment.Cost</td>
+                        <td><FluentButton OnClick="@(() => DeleteEquipment(equipment.Id))">Delete</FluentButton></td>
+                    </tr>
+                }
+            }
+        </table>
+    </FluentTab>
+    <FluentTab Label="Categories" Id="tab-2">
+        <FluentButton OnClick="@OpenCategoryCreationDialog" IconStart="@(new Icons.Regular.Size20.Add())">Add</FluentButton>
+        <table>
+            <tr>
+                <th>Name</th>
+            </tr>
+            @using (var db = new DataContext())
+            {
+                @foreach (var category in db.Categories.AsNoTracking().ToList())
+                {
+                    <tr>
+                        <td>@category.Name</td>
+                        <td><FluentButton OnClick="@(() => DeleteCategory(category.Id))">Delete</FluentButton></td>
+                    </tr>
+                }
+            }
+        </table>
+    </FluentTab>
+</FluentTabs>
+
+
+
+
+@code {
+    private string activeTab = "tab-1";
+    private bool _trapFocus = true;
+    private bool _modal = true;
+
+
+    public void DeleteEquipment(int id)
+    {
+        using var db = new DataContext();
+        db.Equipment.Remove(new Equipment() { Id = id });
+        db.SaveChanges();
+        StateHasChanged();
+    }
+
+    public void DeleteCategory(int id)
+    {
+        using var db = new DataContext();
+        db.Categories.Remove(new Category() { Id = id });
+        db.SaveChanges();
+        StateHasChanged();
+    }
+
+    public async void OpenEquipmentCreationDialog()
+    {
+        using var db = new DataContext();
+        DialogParameters parameters = new()
+        {
+            Title = $"New Equipment",
+            Width = "500px",
+            TrapFocus = _trapFocus,
+            Modal = _modal,
+            PreventScroll = true
+        };
+
+        IDialogReference dialog = await DialogService.ShowDialogAsync<EquipmentCreateDialog>(parameters);
+        DialogResult? result = await dialog.Result;
+        Equipment createdEquipment = (Equipment)result.Data;
+        if (createdEquipment == null)
+        {
+            return;
+        }
+        db.Equipment.Add(createdEquipment);
+        await db.SaveChangesAsync();
+        StateHasChanged();
+    }
+    public async void OpenCategoryCreationDialog()
+    {
+        using var db = new DataContext();
+        DialogParameters parameters = new()
+            {
+                Title = $"New Category",
+                Width = "500px",
+                TrapFocus = _trapFocus,
+                Modal = _modal,
+                PreventScroll = true
+            };
+
+        IDialogReference dialog = await DialogService.ShowDialogAsync<CategoryCreateDialog>(parameters);
+        DialogResult? result = await dialog.Result;
+        Category createdCategory = (Category)result.Data;
+        if (createdCategory == null)
+        {
+            return;
+        }
+        db.Categories.Add(createdCategory);
+        await db.SaveChangesAsync();
+        StateHasChanged();
+    }
+}

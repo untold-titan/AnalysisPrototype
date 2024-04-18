@@ -1,0 +1,15 @@
+﻿@inherits LayoutComponentBase
+@using Microsoft.FluentUI.AspNetCore.Components
+<div class="page">
+
+    <div>
+        <NavMenu />
+    </div>
+    <div style="padding: 10px">
+        @Body
+        <FluentToastProvider />
+        <FluentDialogProvider />
+        <FluentTooltipProvider />
+        <FluentMessageBarProvider />
+    </div>
+</div>

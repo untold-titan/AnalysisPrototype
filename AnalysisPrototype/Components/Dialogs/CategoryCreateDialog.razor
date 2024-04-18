@@ -1,0 +1,35 @@
+@using Microsoft.FluentUI.AspNetCore.Components;
+@using AnalysisPrototype.Data;
+@implements IDialogContentComponent;
+
+<FluentTextField Label="Name" Size="90" @bind-Value="name"></FluentTextField>
+
+<FluentDialogFooter>
+    <FluentButton Appearance="Appearance.Accent" OnClick="@SaveAsync">Save</FluentButton>
+    <FluentButton Appearance="Appearance.Neutral" OnClick="@CancelAsync">Cancel</FluentButton>
+</FluentDialogFooter>
+
+@code {
+    string name = "";
+    public Category category;
+
+    [CascadingParameter]
+    public FluentDialog? Dialog { get; set; }
+
+    private async Task SaveAsync()
+    {
+        if (name == "")
+        {
+            return;
+        }
+        category = new();
+        category.Name = name;
+
+        await Dialog.CloseAsync<Category>(category);
+    }
+
+    private async Task CancelAsync()
+    {
+        await Dialog.CancelAsync();
+    }
+}

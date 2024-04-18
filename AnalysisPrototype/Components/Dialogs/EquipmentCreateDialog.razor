@@ -1,0 +1,52 @@
+@using Microsoft.FluentUI.AspNetCore.Components;
+@using AnalysisPrototype.DataManagers;
+@using AnalysisPrototype.Data;
+@using Microsoft.EntityFrameworkCore;
+@implements IDialogContentComponent;
+@using (var db = new DataContext())
+{
+    <FluentSelect Items="@db.Categories.AsNoTracking().ToList()" OptionText="@(i => i.Name)" OptionValue="@(i => i.Id.ToString())" OptionSelected="@(i => i.Id.ToString() == defaultCategory)" @bind-Value="@selectedCategory" Label="Category"></FluentSelect>
+}
+<FluentTextField Label="Name" Size="90" @bind-Value="name"></FluentTextField>
+<FluentTextField Label="Description" Size="90" @bind-Value="description"></FluentTextField>
+<FluentNumberField Label="Cost" Step=".25" @bind-Value="@cost"></FluentNumberField>
+
+<FluentDialogFooter>
+    <FluentButton Appearance="Appearance.Accent" OnClick="@SaveAsync">Save</FluentButton>
+    <FluentButton Appearance="Appearance.Neutral" OnClick="@CancelAsync">Cancel</FluentButton>
+</FluentDialogFooter>
+
+@code {
+    string name = "", description = "", selectedCategory = "0", defaultCategory = "";
+ 
+    float cost = 0;
+    public Equipment equipment;
+
+    [CascadingParameter]
+    public FluentDialog? Dialog { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        using var db = new DataContext();
+        defaultCategory = db.Categories.AsNoTracking().FirstOrDefault().Id.ToString();
+    }
+
+    private async Task SaveAsync()
+    {
+        if (name == "" || description == "" || cost == 0)
+        {
+            return;
+        }
+        equipment = new();
+        equipment.CategoryId = int.Parse(selectedCategory);
+        equipment.Name = name;
+        equipment.Description = description;
+        equipment.Cost = cost;
+        await Dialog.CloseAsync<Equipment>(equipment);
+    }
+
+    private async Task CancelAsync()
+    {
+        await Dialog.CancelAsync();
+    }
+}

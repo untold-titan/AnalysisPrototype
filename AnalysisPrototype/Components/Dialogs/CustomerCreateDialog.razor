@@ -1,0 +1,41 @@
+@using Microsoft.FluentUI.AspNetCore.Components;
+@using AnalysisPrototype.Data;
+@implements IDialogContentComponent;
+
+<FluentTextField Label="First Name" Size="90" @bind-Value="firstName"></FluentTextField>
+<FluentTextField Label="Last Name" Size="90" @bind-Value="lastName"></FluentTextField>
+<FluentTextField Label="Phone" Size="90" @bind-Value="phone"></FluentTextField>
+<FluentTextField Label="Email" Size="90" @bind-Value="email"></FluentTextField>
+
+<FluentDialogFooter>
+    <FluentButton Appearance="Appearance.Accent" OnClick="@SaveAsync">Save</FluentButton>
+    <FluentButton Appearance="Appearance.Neutral" OnClick="@CancelAsync">Cancel</FluentButton>
+</FluentDialogFooter>
+
+@code {
+    string firstName = "", lastName = "", phone = "", email = "";
+    public Customer customer;
+
+    [CascadingParameter]
+    public FluentDialog? Dialog { get; set; }
+
+    private async Task SaveAsync()
+    {
+        if(firstName == "" && lastName == "" && phone == "" && email == "")
+        {
+            return;
+        }
+        customer = new Customer();
+        customer.FirstName = firstName;
+        customer.LastName = lastName;
+        customer.Phone = phone;
+        customer.Email = email;
+
+        await Dialog.CloseAsync<Customer>(customer);
+    }
+
+    private async Task CancelAsync()
+    {
+        await Dialog.CancelAsync();
+    }
+}

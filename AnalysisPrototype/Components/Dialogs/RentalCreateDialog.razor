@@ -1,0 +1,76 @@
+@using Microsoft.FluentUI.AspNetCore.Components;
+@using AnalysisPrototype.Data;
+@using AnalysisPrototype.DataManagers;
+@using Microsoft.EntityFrameworkCore;
+@implements IDialogContentComponent;
+@using (var db = new DataContext())
+{
+    <FluentSelect Label="Customer"
+                  Items="@db.Customers.ToList()"
+                  OptionText="@(p => p.FirstName + " " + p.LastName)"
+                  OptionValue="@(p => p.Id.ToString())"
+                  OptionSelected="@(p => p.Id.ToString() == defaultCustomer)"
+                  @bind-Value="@selectedCustomer" />
+}
+<FluentAutocomplete TOption="Equipment"
+                    AutoComplete="off"
+                    Autofocus="true"
+                    Label="Equipment"
+                    Width="250px"
+                    Placeholder="Select equipment"
+                    OnOptionsSearch="@OnSearchAsync"
+                    MaximumSelectedOptions="10"
+                    OptionText="@(item => item.Name)"
+                    @bind-SelectedOptions="@SelectedItems" />
+<FluentDatePicker Label="Rent Date" @bind-Value="@rentDate" />
+<FluentDatePicker Label="Return Date" @bind-Value="@returnDate" />
+
+<FluentDialogFooter>
+    <FluentButton Appearance="Appearance.Accent" OnClick="@SaveAsync">Save</FluentButton>
+    <FluentButton Appearance="Appearance.Neutral" OnClick="@CancelAsync">Cancel</FluentButton>
+</FluentDialogFooter>
+
+@code {
+    IEnumerable<Equipment> SelectedItems = Array.Empty<Equipment>();
+    string selectedCustomer = "";
+    string defaultCustomer = "";
+    DateTime? rentDate;
+    DateTime? returnDate;
+
+    protected override async Task OnInitializedAsync()
+    {
+        using var db = new DataContext();
+        defaultCustomer = db.Customers.AsNoTracking().FirstOrDefault().Id.ToString();
+    }
+
+    private async Task OnSearchAsync(OptionsSearchEventArgs<Equipment> e)
+    {
+        using var db = new DataContext();
+        var allEquipment = db.Equipment.ToList();
+        e.Items = allEquipment.Where(i => i.Name.StartsWith(e.Text, StringComparison.OrdinalIgnoreCase))
+                          .OrderBy(i => i.Name);
+    }
+
+    Rental rental;
+
+    [CascadingParameter]
+    public FluentDialog? Dialog { get; set; }
+
+    private async Task SaveAsync()
+    {
+        rental = new Rental();
+        rental.CustomerId = int.Parse(selectedCustomer);
+        foreach (var e in SelectedItems)
+        {
+            rental.Equipment.Add(e);
+        }
+        rental.RentalDate = rentDate ?? DateTime.Today;
+        rental.ReturnDate = returnDate ?? DateTime.Today;
+        await Dialog.CloseAsync<Rental>(rental);
+    }
+
+    private async Task CancelAsync()
+    {
+        await Dialog.CancelAsync();
+    }
+}

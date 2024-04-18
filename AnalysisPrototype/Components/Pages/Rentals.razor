@@ -1,0 +1,73 @@
+﻿@using AnalysisPrototype.DataManagers;
+@using AnalysisPrototype.Data;
+@using Microsoft.EntityFrameworkCore;
+@using Microsoft.FluentUI.AspNetCore.Components;
+@using AnalysisPrototype.Components.Dialogs;
+@inject IDialogService DialogService;
+@page "/rentals"
+
+
+<h1>Rentals</h1>
+<FluentButton OnClick="@OpenCreationDialog" IconStart="@(new Icons.Regular.Size20.Add())">Add</FluentButton>
+<table>
+    <tr>
+        <th>First Name</th>
+        <th>Last Name</th>
+        <th>Rented Equipment</th>
+        <th>Rent Date</th>
+        <th>Return Date</th>
+        <th>Total Cost</th>
+    </tr>
+    @using (var db = new DataContext())
+    {
+        @foreach (var rental in db.Rentals.AsNoTracking().Include(p => p.Customer).Include(p => p.Equipment).ToList())
+        {
+            <tr>
+                <td>@rental.Customer.FirstName</td>
+                <td>@rental.Customer.LastName</td>
+                <td>@string.Join(",", rental.Equipment.Select(p => p.Name).ToList())</td>
+                <td>@rental.RentalDate</td>
+                <td>@rental.ReturnDate</td>
+                <td>@rental.TotalCost</td>
+                <td><FluentButton OnClick="@(() => DeleteRental(rental.Id))">Delete</FluentButton></td>
+            </tr>
+        }
+    }
+</table>
+
+@code {
+    private bool _trapFocus = true;
+    private bool _modal = true;
+
+    public void DeleteRental(int id)
+    {
+        using var db = new DataContext();
+        db.Rentals.Remove(db.Rentals.First(p => p.Id == id));
+        db.SaveChanges();
+        StateHasChanged();
+    }
+
+    public async void OpenCreationDialog()
+    {
+        DialogParameters parameters = new()
+            {
+                Title = $"New Rental",
+                Width = "500px",
+                TrapFocus = _trapFocus,
+                Modal = _modal,
+                PreventScroll = true
+            };
+
+        IDialogReference dialog = await DialogService.ShowDialogAsync<RentalCreateDialog>(parameters);
+        DialogResult? result = await dialog.Result;
+        Rental createdRental = (Rental)result.Data;
+        if (createdRental == null)
+        {
+            return;
+        }
+        using var db = new DataContext();
+        db.Update(createdRental);
+        await db.SaveChangesAsync();
+        StateHasChanged();
+    }
+}

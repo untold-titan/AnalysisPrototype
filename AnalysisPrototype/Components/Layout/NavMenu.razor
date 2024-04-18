@@ -1,0 +1,15 @@
+﻿@using Microsoft.FluentUI.AspNetCore.Components;
+<div style="background: var(--neutral-layer-3);">
+    <h3 style="margin: 0; font-size:22px; padding-left:10px; padding-top:10px">Rental Manager 9000</h3>
+</div>
+<FluentStack Orientation="Orientation.Horizontal">
+    <div style="background: var(--neutral-layer-3); display:flex; padding: 10px; height:100vh">
+        <FluentNavMenu Width="250" Title="Navigation">
+            <FluentNavLink Icon="@(new Icons.Regular.Size20.Home())" Href="/">Home</FluentNavLink>
+            <FluentNavLink Icon="@(new Icons.Regular.Size20.People())" Href="/customers">Customers</FluentNavLink>
+            <FluentNavLink Icon="@(new Icons.Regular.Size20.WrenchScrewdriver())" Href="/equipment">Equipment</FluentNavLink>
+            <FluentNavLink Icon="@(new Icons.Regular.Size20.DocumentRibbon())" Href="/rentals">Rentals</FluentNavLink>
+            @* <FluentNavLink Icon="@(new Icons.Regular.Size20.BookCoins())" Href="/reports">Reports</FluentNavLink> *@
+        </FluentNavMenu>
+    </div>
+</FluentStack>
